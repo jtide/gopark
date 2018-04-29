@@ -75,6 +75,14 @@ func respond(f WebFormatter, w *http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// describeError automatically populates an http response with an error message, appropriately
+// formatted in either JSON or XML.
+func describeError(w *http.ResponseWriter, r *http.Request, description string) {
+	e := ApiError{ description }
+	(*w).WriteHeader(http.StatusBadRequest)
+	respond(e, w, r)
+}
+
 // duration provides an endpoint to that echos back both a start and end timestamp
 // in RFC3339 format, after parsing and computing duration
 //
@@ -87,25 +95,19 @@ func duration(w http.ResponseWriter, r *http.Request)  {
 
 	start, err := time.Parse(time.RFC3339, startParam)
 	if err != nil {
-		e := ApiError{ fmt.Sprintf("Error parsing 'start' parameter: [%s]", startParam)}
-		w.WriteHeader(http.StatusBadRequest)
-		respond(e, &w, r)
+		describeError(&w, r, fmt.Sprintf("Error parsing 'start' parameter: [%s]", startParam))
 		return
 	}
 
 	end, err := time.Parse(time.RFC3339, endParam)
 	if err != nil {
-		e := ApiError{ fmt.Sprintf("Error parsing 'end' parameter: [%s]", endParam)}
-		w.WriteHeader(http.StatusBadRequest)
-		respond(e, &w, r)
+		describeError(&w, r, fmt.Sprintf("Error parsing 'end' parameter: [%s]", endParam))
 		return
 	}
 
 	// The end time must come after the start time
 	if end.Before(start) {
-		e := ApiError{ "Invalid duration: End time occurs before start time"}
-		w.WriteHeader(http.StatusBadRequest)
-		respond(e, &w, r)
+		describeError(&w, r, "Invalid duration: End time occurs before start time")
 		return
 	}
 
