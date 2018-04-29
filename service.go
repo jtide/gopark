@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"encoding/json"
+	"encoding/xml"
+	"strings"
 )
 
 func main() {
@@ -20,6 +23,58 @@ func port() string {
 	return ":" + port
 }
 
+// WebFormatter can produce either XML or JSON representations of itself
+type WebFormatter interface {
+	Json() []byte
+	Xml() []byte
+}
+
+// ApiError implements WebFormatter interface
+type ApiError struct {
+	Description string
+}
+
+func (e ApiError) Json() []byte {
+	response, err := json.Marshal(e)
+	if err != nil {
+		panic(err)
+	}
+	return response
+}
+
+func (e ApiError) Xml() []byte {
+	response, err := xml.Marshal(e)
+	if err != nil {
+		panic(err)
+	}
+	return response
+}
+
+func respondWithJson(f WebFormatter, w *http.ResponseWriter) {
+	(*w).Header().Add("Content-Type", "application/json; charset-utf-8")
+	(*w).Write(f.Json())
+}
+
+func respondWithXml(f WebFormatter, w *http.ResponseWriter) {
+	(*w).Header().Add("Content-Type", "application/xml; charset-utf-8")
+	(*w).Write(f.Xml())
+}
+
+// respond is responsible for writing the response payload in either XML or JSON format, based on
+// what the client specifies is accepted in the HTTP headers. If not otherwise specified, JSON is
+// used by default.
+func respond(f WebFormatter, w *http.ResponseWriter, r *http.Request) {
+	encoding := r.Header.Get("Accept")
+	switch {
+	case strings.Contains(encoding, "application/json"):
+		respondWithJson(f, w)
+	case strings.Contains(encoding, "application/xml"):
+		respondWithXml(f, w)
+	default:
+		respondWithJson(f, w)
+	}
+}
+
 // duration provides an endpoint to that echos back both a start and end timestamp
 // in RFC3339 format, after parsing and computing duration
 //
@@ -29,30 +84,28 @@ func duration(w http.ResponseWriter, r *http.Request)  {
 	startParam := r.URL.Query()["start"][0]
 	endParam := r.URL.Query()["end"][0]
 
+
 	start, err := time.Parse(time.RFC3339, startParam)
 	if err != nil {
-		fmt.Printf("Error parsing startParam %s\n", startParam)
+		e := ApiError{ fmt.Sprintf("Error parsing 'start' parameter: [%s]", startParam)}
 		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Add("Content-Type", "text/plain")
-		fmt.Fprintf(w, "Invalid start time: %s\n", start)
+		respond(e, &w, r)
 		return
 	}
 
 	end, err := time.Parse(time.RFC3339, endParam)
 	if err != nil {
-		fmt.Printf("Error parsing endParam %s\n", endParam)
+		e := ApiError{ fmt.Sprintf("Error parsing 'end' parameter: [%s]", endParam)}
 		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Add("Content-Type", "text/plain")
-		fmt.Fprintf(w, "Invalid end time: %s\n", start)
+		respond(e, &w, r)
 		return
 	}
 
 	// The end time must come after the start time
 	if end.Before(start) {
-		fmt.Printf("Error computing duration: %s > %s\n", start, end)
+		e := ApiError{ "Invalid duration: End time occurs before start time"}
 		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Add("Content-Type", "text/plain")
-		fmt.Fprintf(w, "Invalid duration: End time occurs before start time\n")
+		respond(e, &w, r)
 		return
 	}
 
