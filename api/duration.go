@@ -1,15 +1,27 @@
 package api
 
 import (
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"time"
 )
 
 type Duration struct {
-	Start time.Time
-	End   time.Time
-	Value time.Duration
+	Start time.Time     `json:"start"`
+	End   time.Time     `json:"end"`
+	Value time.Duration `json:"duration"`
+}
+
+// JSON implementation for WebFormatter interface
+func (d Duration) JSON() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+// XML implementation for WebFormatter interface
+func (d Duration) XML() ([]byte, error) {
+	return xml.Marshal(d)
 }
 
 func ParseDuration(startParam string, endParam string) (Duration, error) {
@@ -75,7 +87,5 @@ func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
 	// Return time formatted as RFC3339 as a sanity check
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "text/plain")
-	fmt.Fprintf(w, "start    : %s\n", duration.Start)
-	fmt.Fprintf(w, "end      : %s\n", duration.End)
-	fmt.Fprintf(w, "duration : %s\n", duration.Value)
+	WriteResponse(duration, &w)
 }
