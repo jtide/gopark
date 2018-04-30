@@ -25,8 +25,8 @@ func port() string {
 
 // WebFormatter can produce either XML or JSON representations of itself
 type WebFormatter interface {
-	Json() []byte
-	Xml() []byte
+	JSON() []byte
+	XML() []byte
 }
 
 // ApiError implements WebFormatter interface
@@ -34,7 +34,7 @@ type ApiError struct {
 	Description string
 }
 
-func (e ApiError) Json() []byte {
+func (e ApiError) JSON() []byte {
 	response, err := json.Marshal(e)
 	if err != nil {
 		panic(err)
@@ -42,7 +42,7 @@ func (e ApiError) Json() []byte {
 	return response
 }
 
-func (e ApiError) Xml() []byte {
+func (e ApiError) XML() []byte {
 	response, err := xml.Marshal(e)
 	if err != nil {
 		panic(err)
@@ -50,14 +50,14 @@ func (e ApiError) Xml() []byte {
 	return response
 }
 
-func respondWithJson(f WebFormatter, w *http.ResponseWriter) {
+func respondWithJSON(f WebFormatter, w *http.ResponseWriter) {
 	(*w).Header().Add("Content-Type", "application/json; charset-utf-8")
-	(*w).Write(f.Json())
+	(*w).Write(f.JSON())
 }
 
-func respondWithXml(f WebFormatter, w *http.ResponseWriter) {
+func respondWithXML(f WebFormatter, w *http.ResponseWriter) {
 	(*w).Header().Add("Content-Type", "application/xml; charset-utf-8")
-	(*w).Write(f.Xml())
+	(*w).Write(f.XML())
 }
 
 // respond is responsible for writing the response payload in either XML or JSON format, based on
@@ -66,11 +66,11 @@ func respond(f WebFormatter, w *http.ResponseWriter) {
 	encoding := (*w).Header().Get("Content-Type")
 	switch {
 	case strings.Contains(encoding, "json"):
-		respondWithJson(f, w)
+		respondWithJSON(f, w)
 	case strings.Contains(encoding, "xml"):
-		respondWithXml(f, w)
+		respondWithXML(f, w)
 	default:
-		respondWithJson(f, w)
+		respondWithJSON(f, w)
 	}
 }
 
