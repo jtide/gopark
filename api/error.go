@@ -33,5 +33,5 @@ func (e Error) XML() []byte {
 func DescribeError(w *http.ResponseWriter, description string) {
 	e := Error{description}
 	(*w).WriteHeader(http.StatusBadRequest)
-	Respond(e, w)
+	WriteResponse(e, w)
 }

@@ -21,9 +21,9 @@ func respondWithXML(f WebFormatter, w *http.ResponseWriter) {
 	(*w).Write(f.XML())
 }
 
-// respond is responsible for writing the response payload in either XML or JSON format, based on
+// WriteResponse is responsible for writing the response payload in either XML or JSON format, based on
 // the response Content-Type HTTP header. If not otherwise specified, JSON is used by default.
-func Respond(f WebFormatter, w *http.ResponseWriter) {
+func WriteResponse(f WebFormatter, w *http.ResponseWriter) {
 	encoding := (*w).Header().Get("Content-Type")
 	switch {
 	case strings.Contains(encoding, "json"):
