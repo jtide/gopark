@@ -61,26 +61,39 @@ func respondWithXml(f WebFormatter, w *http.ResponseWriter) {
 }
 
 // respond is responsible for writing the response payload in either XML or JSON format, based on
-// what the client specifies is accepted in the HTTP headers. If not otherwise specified, JSON is
-// used by default.
-func respond(f WebFormatter, w *http.ResponseWriter, r *http.Request) {
-	encoding := r.Header.Get("Accept")
+// the response Content-Type HTTP header. If not otherwise specified, JSON is used by default.
+func respond(f WebFormatter, w *http.ResponseWriter) {
+	encoding := (*w).Header().Get("Content-Type")
 	switch {
-	case strings.Contains(encoding, "application/json"):
+	case strings.Contains(encoding, "json"):
 		respondWithJson(f, w)
-	case strings.Contains(encoding, "application/xml"):
+	case strings.Contains(encoding, "xml"):
 		respondWithXml(f, w)
 	default:
 		respondWithJson(f, w)
 	}
 }
 
+// setResponseFormat sets the format of the response based on the "Accept" headers of the HTTP request.
+// The format will be either JSON or XML.  If the client accepts either, then JSON is preferred.
+func setResponseFormat(w *http.ResponseWriter, r *http.Request) {
+	encoding := r.Header.Get("Accept")
+	switch {
+	case strings.Contains(encoding, "application/json"):
+		(*w).Header().Add("Content-Type", "application/json; charset-utf-8")
+	case strings.Contains(encoding, "application/xml"):
+		(*w).Header().Add("Content-Type", "application/xml; charset-utf-8")
+	default:
+		(*w).Header().Add("Content-Type", "application/json; charset-utf-8")
+	}
+}
+
 // describeError automatically populates an http response with an error message, appropriately
 // formatted in either JSON or XML.
-func describeError(w *http.ResponseWriter, r *http.Request, description string) {
+func describeError(w *http.ResponseWriter, description string) {
 	e := ApiError{ description }
 	(*w).WriteHeader(http.StatusBadRequest)
-	respond(e, w, r)
+	respond(e, w)
 }
 
 // duration provides an endpoint to that echos back both a start and end timestamp
@@ -89,25 +102,27 @@ func describeError(w *http.ResponseWriter, r *http.Request, description string) 
 // Example:
 // 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
 func duration(w http.ResponseWriter, r *http.Request)  {
+	setResponseFormat(&w, r)
+
 	startParam := r.URL.Query()["start"][0]
 	endParam := r.URL.Query()["end"][0]
 
 
 	start, err := time.Parse(time.RFC3339, startParam)
 	if err != nil {
-		describeError(&w, r, fmt.Sprintf("Error parsing 'start' parameter: [%s]", startParam))
+		describeError(&w, fmt.Sprintf("Error parsing 'start' parameter: [%s]", startParam))
 		return
 	}
 
 	end, err := time.Parse(time.RFC3339, endParam)
 	if err != nil {
-		describeError(&w, r, fmt.Sprintf("Error parsing 'end' parameter: [%s]", endParam))
+		describeError(&w, fmt.Sprintf("Error parsing 'end' parameter: [%s]", endParam))
 		return
 	}
 
 	// The end time must come after the start time
 	if end.Before(start) {
-		describeError(&w, r, "Invalid duration: End time occurs before start time")
+		describeError(&w, "Invalid duration: End time occurs before start time")
 		return
 	}
 
