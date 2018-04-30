@@ -1,9 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"time"
-	"fmt"
 )
 
 // duration provides an endpoint to that echos back both a start and end timestamp
@@ -11,12 +11,11 @@ import (
 //
 // Example:
 // 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
-func DurationHandleFunc(w http.ResponseWriter, r *http.Request)  {
+func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
 	InitializeResponse(&w, r)
 
 	startParam := r.URL.Query()["start"][0]
 	endParam := r.URL.Query()["end"][0]
-
 
 	start, err := time.Parse(time.RFC3339, startParam)
 	if err != nil {

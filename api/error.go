@@ -31,8 +31,7 @@ func (e Error) XML() []byte {
 // DescribeError populates an http response with an error message, appropriately
 // formatted in either JSON or XML.
 func DescribeError(w *http.ResponseWriter, description string) {
-	e := Error{ description }
+	e := Error{description}
 	(*w).WriteHeader(http.StatusBadRequest)
 	Respond(e, w)
 }
-

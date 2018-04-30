@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/jtide/gopark/api"
 	"net/http"
 	"os"
-	"github.com/jtide/gopark/api"
 )
 
 func main() {
