@@ -74,7 +74,7 @@ func DurationFromHTTPRequest(r *http.Request) (Duration, error) {
 // Example:
 // 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
 func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
-	InitializeResponse(&w, r)
+	InitializeResponse(&w, r) // Required before WriteResponse
 
 	// Calculate duration from start to end
 	duration, err := DurationFromHTTPRequest(r)
@@ -86,6 +86,5 @@ func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 	// Return time formatted as RFC3339 as a sanity check
 	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "text/plain")
 	WriteResponse(duration, &w)
 }
