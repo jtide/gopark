@@ -46,13 +46,14 @@ func WriteResponse(f WebFormatter, w *http.ResponseWriter) error {
 }
 
 // InitializeResponse sets the format of the response based on the "Accept" headers of the HTTP request.
+// InitializeResponse must be called before WriteResponse in order to ensure proper format of the response.
 // The format will be either JSON or XML.  If the client accepts either, then JSON is preferred.
 func InitializeResponse(w *http.ResponseWriter, r *http.Request) {
 	encoding := r.Header.Get("Accept")
 	switch {
-	case strings.Contains(encoding, "application/json"):
+	case strings.Contains(encoding, "json"):
 		(*w).Header().Add("Content-Type", "application/json; charset-utf-8")
-	case strings.Contains(encoding, "application/xml"):
+	case strings.Contains(encoding, "xml"):
 		(*w).Header().Add("Content-Type", "application/xml; charset-utf-8")
 	default:
 		(*w).Header().Add("Content-Type", "application/json; charset-utf-8")
