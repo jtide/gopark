@@ -6,7 +6,7 @@ import (
 )
 
 type Error struct {
-	Description string
+	Description string `json:"error"`
 }
 
 // JSON implementation for WebFormatter interface
