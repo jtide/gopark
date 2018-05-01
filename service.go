@@ -8,6 +8,7 @@ import (
 
 func main() {
 	http.HandleFunc("/api/duration", api.DurationHandleFunc)
+	http.HandleFunc("/api/rate", api.RateHandleFunc)
 	http.ListenAndServe(port(), nil)
 }
 
