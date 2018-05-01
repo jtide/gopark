@@ -48,13 +48,11 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 	rate := Rate{Start: duration.Start, End: duration.End, Price: lookupRate(duration)}
 
 	// Respond with price
+	w.WriteHeader(http.StatusOK)
 	err = WriteResponse(rate, &w)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		WriteResponse(Error{err.Error()}, &w)
 		return
 	}
-
-	// Success
-	w.WriteHeader(http.StatusOK)
 }
