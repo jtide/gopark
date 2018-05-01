@@ -13,12 +13,12 @@ type Rate struct {
 	Price uint      `json:"price"`
 }
 
-// JSON implementation for WebFormatter interface
+// JSON implementation for WebFormatter interface.
 func (r Rate) JSON() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-// XML implementation for WebFormatter interface
+// XML implementation for WebFormatter interface.
 func (r Rate) XML() ([]byte, error) {
 	return xml.Marshal(r)
 }
@@ -29,7 +29,7 @@ func lookupRate(d Duration) uint {
 }
 
 // RateHandleFunc provides an endpoint to that echos back both a start and end timestamp
-// in RFC3339 format, after parsing and computing duration
+// in RFC3339 format, after parsing and computing duration.
 //
 // Example:
 // 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"

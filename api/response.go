@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// WebFormatter can produce either XML or JSON representations of itself
+// WebFormatter implementors can produce either XML or JSON representations themselves.
 type WebFormatter interface {
 	JSON() ([]byte, error)
 	XML() ([]byte, error)

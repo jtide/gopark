@@ -9,12 +9,12 @@ type Error struct {
 	Description string `json:"error"`
 }
 
-// JSON implementation for WebFormatter interface
+// JSON implementation for WebFormatter interface.
 func (e Error) JSON() ([]byte, error) {
 	return json.Marshal(e)
 }
 
-// XML implementation for WebFormatter interface
+// XML implementation for WebFormatter interface.
 func (e Error) XML() ([]byte, error) {
 	return xml.Marshal(e)
 }

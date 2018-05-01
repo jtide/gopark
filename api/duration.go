@@ -14,12 +14,12 @@ type Duration struct {
 	Value time.Duration `json:"duration"`
 }
 
-// JSON implementation for WebFormatter interface
+// JSON implementation for WebFormatter interface.
 func (d Duration) JSON() ([]byte, error) {
 	return json.Marshal(d)
 }
 
-// XML implementation for WebFormatter interface
+// XML implementation for WebFormatter interface.
 func (d Duration) XML() ([]byte, error) {
 	return xml.Marshal(d)
 }
@@ -37,12 +37,12 @@ func ParseDuration(startParam string, endParam string) (Duration, error) {
 		return duration, fmt.Errorf("could not parse 'end' parameter [%s]: %v", endParam, err)
 	}
 
-	// The end time must come after the start time
+	// The end time must come after the start time.
 	if endTime.Before(startTime) {
 		return duration, fmt.Errorf("end time occurs before start time")
 	}
 
-	// Calculate duration from start to end
+	// Calculate duration from start to end.
 	duration.Value = endTime.Sub(startTime)
 	duration.Start = startTime
 	duration.End = endTime
@@ -69,14 +69,14 @@ func DurationFromHTTPRequest(r *http.Request) (Duration, error) {
 }
 
 // DurationHandleFunc provides an endpoint to that echos back both a start and end timestamp
-// in RFC3339 format, after parsing and computing duration
+// in RFC3339 format, after parsing and computing duration.
 //
 // Example:
 // 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
 func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
 	InitializeResponse(&w, r) // Required before WriteResponse
 
-	// Calculate duration from start to end
+	// Calculate duration from start to end.
 	duration, err := DurationFromHTTPRequest(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -84,7 +84,7 @@ func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return time formatted as RFC3339 as a sanity check
+	// Return time formatted as RFC3339 as a sanity check.
 	w.WriteHeader(http.StatusOK)
 	WriteResponse(duration, &w)
 }
