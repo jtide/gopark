@@ -16,7 +16,6 @@ func main() {
 		// one of the very few cases where a panic is warranted.
 		panic(err)
 	}
-	http.HandleFunc("/api/duration", api.DurationHandleFunc)
 	http.HandleFunc("/api/rate", api.RateHandleFunc)
 	http.ListenAndServe(port(), nil)
 }

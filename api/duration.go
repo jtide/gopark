@@ -70,24 +70,3 @@ func DurationFromHTTPRequest(r *http.Request) (Duration, error) {
 	endParam := r.URL.Query()["end"][0]
 	return ParseDuration(startParam, endParam)
 }
-
-// DurationHandleFunc provides an endpoint to that echos back both a start and end timestamp
-// in RFC3339 format, after parsing and computing duration.
-//
-// Example:
-// 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
-func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
-	InitializeResponse(&w, r) // Required before WriteResponse
-
-	// Calculate duration from start to end.
-	duration, err := DurationFromHTTPRequest(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
-		return
-	}
-
-	// Return time formatted as RFC3339 as a sanity check.
-	w.WriteHeader(http.StatusOK)
-	WriteResponse(duration, &w)
-}
