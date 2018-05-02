@@ -11,26 +11,28 @@ import (
 	"time"
 )
 
-type Rate struct {
-	Start time.Time `json:"start"`
-	End   time.Time `json:"end"`
-	Price uint      `json:"price"`
+type CrazyRate struct {
+	Status uint      `json:"status"`
+	Start  time.Time `json:"start"`
+	End    time.Time `json:"end"`
+	Price  uint      `json:"price"`
 }
 
 // JSON implementation for WebFormatter interface.
-func (r Rate) JSON() ([]byte, error) {
+func (r CrazyRate) JSON() ([]byte, error) {
 	return json.Marshal(r)
 }
 
 // XML implementation for WebFormatter interface.
-func (r Rate) XML() ([]byte, error) {
+func (r CrazyRate) XML() ([]byte, error) {
 	return xml.Marshal(r)
 }
 
 type UnknownRate struct {
-	Start time.Time `json:"start" xml:"start"`
-	End   time.Time `json:"end" xml:"end"`
-	Price string    `json:"price" xml:"price"`
+	Status uint      `json:"status"`
+	Start  time.Time `json:"start"`
+	End    time.Time `json:"end"`
+	Price  string    `json:"price"`
 }
 
 // JSON implementation for WebFormatter interface.
@@ -323,17 +325,17 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Lookup the Rate
+	// Lookup the CrazyRate
 	price, err := currentWeeklyRates.LookupByDuration(duration)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
-		unknownRate := UnknownRate{Start: duration.Start, End: duration.End, Price: "unavailable"}
+		unknownRate := UnknownRate{Status: http.StatusNotFound, Start: duration.Start, End: duration.End, Price: "unavailable"}
 		WriteResponse(unknownRate, &w)
 		return
 	}
 
-	// Return rate in Rate format
-	rate := Rate{Start: duration.Start, End: duration.End, Price: price}
+	// Return rate in CrazyRate format
+	rate := CrazyRate{Status: http.StatusOK, Start: duration.Start, End: duration.End, Price: price}
 	w.WriteHeader(http.StatusOK)
 	err = WriteResponse(rate, &w)
 	if err != nil {
