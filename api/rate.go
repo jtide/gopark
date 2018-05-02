@@ -10,42 +10,69 @@ import (
 	"time"
 )
 
-type ReturnRate struct {
+type Rate struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
 	Price uint      `json:"price"`
 }
 
 // JSON implementation for WebFormatter interface.
-func (r ReturnRate) JSON() ([]byte, error) {
+func (r Rate) JSON() ([]byte, error) {
 	return json.Marshal(r)
 }
 
 // XML implementation for WebFormatter interface.
-func (r ReturnRate) XML() ([]byte, error) {
+func (r Rate) XML() ([]byte, error) {
 	return xml.Marshal(r)
 }
 
-func lookupRate(d Duration) uint {
-	// TODO: implement lookupRate
-	return uint(0)
+type UnknownRate struct {
+	Start time.Time `json:"start" xml:"start"`
+	End   time.Time `json:"end" xml:"end"`
+	Price string    `json:"price" xml:"price"`
+}
+
+// JSON implementation for WebFormatter interface.
+func (r UnknownRate) JSON() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+// XML implementation for WebFormatter interface.
+func (r UnknownRate) XML() ([]byte, error) {
+	return xml.Marshal(r)
 }
 
 // currentWeeklyRates is (the only) global variable containing rate information for given times
-var currentWeeklyRates WeeklyRates
+var currentWeeklyRates *WeeklyRates
 
 // WeeklyRates is a mapping of DailyRates for each day of the week
 type WeeklyRates map[time.Weekday]DailyRates
 
 // DailyRates is mapping between "minutes-since-midnight" and the associated rate that begins at that time
-type DailyRates map[uint64]Rate
+type DailyRates map[uint64]HourlyRate
 
-// Rate contains a price corresponding to a specific time-range and specific day of the week.
-type Rate struct {
+// HourlyRate contains a price corresponding to a specific time-range and specific day of the week.
+type HourlyRate struct {
 	Day         time.Weekday `json:"day"`
 	StartMinute uint64       `json:"start"`
 	EndMinute   uint64       `json:"end"`
 	Price       uint         `json:"price"`
+}
+
+func (r1 *HourlyRate) EqualTo(r2 HourlyRate) bool {
+	if r1.Day != r2.Day {
+		return false
+	}
+	if r1.StartMinute != r2.StartMinute {
+		return false
+	}
+	if r1.EndMinute != r2.EndMinute {
+		return false
+	}
+	if r1.Price != r2.Price {
+		return false
+	}
+	return true
 }
 
 // NewWeeklyRates creates an empty WeeklyRates table that is ready to populate
@@ -59,6 +86,49 @@ func NewWeeklyRates() WeeklyRates {
 	rates[time.Saturday] = make(DailyRates)
 	rates[time.Sunday] = make(DailyRates)
 	return rates
+}
+
+func (src *WeeklyRates) DeepCopy() WeeklyRates {
+	rates := NewWeeklyRates()
+	for i, srcDailyRates := range *src {
+		for j, srcRate := range srcDailyRates {
+			fmt.Printf("i:%v, j:%v, dr:%v, r:%v\n", i, j, srcDailyRates, srcRate)
+			rates[i][j] = srcRate
+		}
+	}
+	return rates
+}
+
+// ReplaceRates will clear any existing rate configuration and replace it with
+// a new configuration, specified in JSON format.
+func ReplaceRates(jsonConfig []byte) error {
+	rates := NewWeeklyRates()
+	err := rates.Update(jsonConfig)
+	if err != nil {
+		return fmt.Errorf("failed to replace rates: %v", err.Error())
+	}
+
+	// Set global weekly rates
+	currentWeeklyRates = &rates
+	return nil
+}
+
+// UpdateRates will update existing rate configuration, if possible, with one
+// or more new rates, specified in JSON format. It will keep all existing
+// rates intact. It will return an error if the update fails, which may occur
+// if a rate already exists for the duration in a new rate.
+func UpdateRates(jsonConfig []byte) error {
+	rates := currentWeeklyRates.DeepCopy()
+	err := rates.Update(jsonConfig)
+	if err != nil {
+		return fmt.Errorf("failed to update rates: %v", err.Error())
+	}
+
+	// Update global weekly rates in one atomic operation
+	// to avoid race conditions where of queries could access
+	// rate information while it is being updated.
+	currentWeeklyRates = &rates
+	return nil
 }
 
 // Keys returns a sorted []uint64 array of start-time indexes (keys) for DailyRates.
@@ -106,14 +176,14 @@ func (d *DailyRates) HasPrice(minuteSinceMidnight uint64) bool {
 
 // AtMinuteSinceMidnight determines if a rate exists for the given time in units of minutes-since-midnight. Returns
 // the price if a rate exists for the given time, otherwise an error is returned.
-func (d *DailyRates) AtMinuteSinceMidnight(m uint64) (Rate, error) {
+func (d *DailyRates) AtMinuteSinceMidnight(m uint64) (HourlyRate, error) {
 	for _, key := range (*d).Keys() {
 		rate := (*d)[key]
 		if m >= rate.StartMinute && m < rate.EndMinute {
 			return rate, nil
 		}
 	}
-	return Rate{}, fmt.Errorf("no rate exists for minute: %v", m)
+	return HourlyRate{}, fmt.Errorf("no rate exists for minute: %v", m)
 }
 
 // Update accepts a JSON byte array to update the weekly rates.
@@ -163,7 +233,7 @@ func updateRate(rate ConfigRate, rates *WeeklyRates) error {
 		}
 
 		// Create new rate for time-window
-		newRate := Rate{Day: weekday, StartMinute: start, EndMinute: end, Price: rate.Price}
+		newRate := HourlyRate{Day: weekday, StartMinute: start, EndMinute: end, Price: rate.Price}
 		if err = rates.ConflictsWith(newRate); err != nil {
 			return fmt.Errorf("new rate presents a conflict %v: %v", newRate, err.Error())
 		}
@@ -198,16 +268,16 @@ func (weekRates *WeeklyRates) LookupByDuration(d Duration) (uint, error) {
 
 	// Require that rates are in the same range, even if the numeric price
 	// is equal.
-	if startRate == endRate {
-		return startRate.Price, nil
+	if !startRate.EqualTo(endRate) {
+		return 0, fmt.Errorf("rate not in same time range")
 	}
 
-	return 0, fmt.Errorf("rate not in same time range")
+	return startRate.Price, nil
 }
 
-// ConflictsWith determines if a new Rate will overlap with any existing Rate in WeeklyRates, and
+// ConflictsWith determines if a new HourlyRate will overlap with any existing HourlyRate in WeeklyRates, and
 // returns true if a conflict exists, false if no conflict.
-func (weekRates *WeeklyRates) ConflictsWith(newRate Rate) error {
+func (weekRates *WeeklyRates) ConflictsWith(newRate HourlyRate) error {
 	dayRates := (*weekRates)[newRate.Day]
 
 	rate, err := dayRates.AtMinuteSinceMidnight(newRate.StartMinute)
@@ -237,10 +307,17 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Lookup the ReturnRate
-	rate := ReturnRate{Start: duration.Start, End: duration.End, Price: lookupRate(duration)}
+	// Lookup the Rate
+	price, err := currentWeeklyRates.LookupByDuration(duration)
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+		unknownRate := UnknownRate{Start: duration.Start, End: duration.End, Price: "unavailable"}
+		WriteResponse(unknownRate, &w)
+		return
+	}
 
-	// Respond with price
+	// Return rate in Rate format
+	rate := Rate{Start: duration.Start, End: duration.End, Price: price}
 	w.WriteHeader(http.StatusOK)
 	err = WriteResponse(rate, &w)
 	if err != nil {

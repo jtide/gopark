@@ -197,3 +197,41 @@ func TestLookupPriceUnavailable2(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, uint(0), price)
 }
+
+func TestWeeklyRates_DeepCopy(t *testing.T) {
+	rates := api.NewWeeklyRates()
+	err := rates.Update(jsonStandardConfig)
+	assert.NoError(t, err)
+
+	ratesCopy := rates.DeepCopy()
+
+	var jsonUpdate = []byte(
+		`{
+    "rates": [
+        {
+            "days": "mon",
+            "times": "0600-0700",
+            "price": 1234
+        }
+    ]
+}`)
+
+	// Only update the copy
+	err = ratesCopy.Update(jsonUpdate)
+	assert.NoError(t, err)
+
+	// HourlyRate from original should be found in copy
+	price, err := ratesCopy.Lookup("2018-04-30T04:30:00Z", "2018-04-30T04:45:00Z")
+	assert.NoError(t, err)
+	assert.Equal(t, uint(1000), price)
+
+	// HourlyRate from update should be found in copy
+	price, err = ratesCopy.Lookup("2018-04-30T06:00:00Z", "2018-04-30T06:30:00Z")
+	assert.NoError(t, err)
+	assert.Equal(t, uint(1234), price)
+
+	// HourlyRate from update should not be found in original
+	price, err = rates.Lookup("2018-04-30T06:00:00Z", "2018-04-30T06:30:00Z")
+	assert.Error(t, err)
+	assert.Equal(t, uint(0), price)
+}
