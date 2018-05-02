@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,16 +10,6 @@ type Duration struct {
 	Start time.Time     `json:"start"`
 	End   time.Time     `json:"end"`
 	Value time.Duration `json:"duration"`
-}
-
-// JSON implementation for WebFormatter interface.
-func (d Duration) JSON() ([]byte, error) {
-	return json.Marshal(d)
-}
-
-// XML implementation for WebFormatter interface.
-func (d Duration) XML() ([]byte, error) {
-	return xml.Marshal(d)
 }
 
 // Print a representation of Duration to stdout
