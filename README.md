@@ -29,7 +29,8 @@ If desired, a custom configuration file can be used to specify the rates:
 
 # API Testing
 
-For details on API testing and validation, see [API testing with curl](./doc/api-testing.md)
+ - For an overview of the `gopark` API, view the [API contract](https://gopark.docs.apiary.io/#) on apiary. 
+ - For additional examples of API testing and validation using curl, see [API testing with curl](./doc/api-testing.md)
 
 # Unit Tests
 To run unit tests, install the following package, if not already installed.
