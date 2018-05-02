@@ -289,14 +289,29 @@ func (weekRates *WeeklyRates) ConflictsWith(newRate HourlyRate) error {
 	return nil
 }
 
-// RateHandleFunc provides an endpoint to that echos back both a start and end timestamp
-// in RFC3339 format, after parsing and computing duration.
-//
-// Example:
-// 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
+// RateHandleFunc is the top-level handler for requests to the
+// /api/rate endpoint and dispatches requests appropriately, based
+// on the type of request method.
 func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 	InitializeResponse(&w, r) // Required before WriteResponse
 
+	switch r.Method {
+	case http.MethodGet:
+		RateHandleGetFunc(w, r)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		err := fmt.Errorf("%v method is not supported at this endpoint", r.Method)
+		WriteResponse(Error{err.Error()}, &w)
+	}
+}
+
+// RateHandleGetFunc provides an endpoint to that echos back both a start and end timestamp
+// in RFC3339 format along with the price for the duration, if available.  Returns a response
+// with "unavailable" if a rate does not exist for the requested time range.
+//
+// Example:
+// 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
+func RateHandleGetFunc(w http.ResponseWriter, r *http.Request) {
 	// Calculate duration from start to end
 	duration, err := DurationFromHTTPRequest(r)
 	if err != nil {
