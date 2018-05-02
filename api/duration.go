@@ -83,7 +83,7 @@ func DurationHandleFunc(w http.ResponseWriter, r *http.Request) {
 	duration, err := DurationFromHTTPRequest(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		WriteResponse(Error{err.Error()}, &w)
+		WriteResponse(APIError{err.Error()}, &w)
 		return
 	}
 

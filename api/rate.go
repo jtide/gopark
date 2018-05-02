@@ -304,7 +304,7 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		err := fmt.Errorf("%v method is not supported at this endpoint", r.Method)
-		WriteResponse(Error{err.Error()}, &w)
+		WriteResponse(APIError{err.Error()}, &w)
 	}
 }
 
@@ -319,7 +319,7 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	duration, err := DurationFromHTTPRequest(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		WriteResponse(Error{err.Error()}, &w)
+		WriteResponse(APIError{err.Error()}, &w)
 		return
 	}
 
@@ -338,7 +338,7 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	err = WriteResponse(rate, &w)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		WriteResponse(Error{err.Error()}, &w)
+		WriteResponse(APIError{err.Error()}, &w)
 		return
 	}
 }
@@ -366,15 +366,15 @@ func RatePutHandleFunc(w http.ResponseWriter, r *http.Request) {
 	jsonConfig, err := JSONFromRequestBody(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		WriteResponse(Error{err.Error()}, &w)
+		WriteResponse(APIError{err.Error()}, &w)
 		return
 	} else if err = ReplaceRates(jsonConfig); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		WriteResponse(Error{err.Error()}, &w)
+		WriteResponse(APIError{err.Error()}, &w)
 		return
 	}
 
-	response := Error{"just kidding... no error here!!"} // FIXME: Create New type
+	response := APIError{"just kidding... no error here!!"} // FIXME: Create New type
 	w.WriteHeader(http.StatusOK)
 	WriteResponse(response, &w)
 }
