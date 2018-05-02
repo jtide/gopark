@@ -312,6 +312,8 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 		RateGetHandleFunc(w, r)
 	case http.MethodPut:
 		RatePutHandleFunc(w, r)
+	case http.MethodPost:
+		RatePostHandleFunc(w, r)
 	default:
 		err := fmt.Errorf("%v method is not supported at this endpoint", r.Method)
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
@@ -357,6 +359,22 @@ func RatePutHandleFunc(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	} else if err = ReplaceRates(jsonConfig); err != nil {
+		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
+		return
+	}
+
+	WriteResponse(APIStandardResponse{http.StatusOK, "replaced rates"}, &w)
+}
+
+// RatePostHandleFunc updates existing rates, if possible, with rates specified in the Post body. The put request
+// must be in JSON format, and have the "Content-Type:application/json" header set. The update will fail
+// if the time range of any new rate overlaps with that of an existing rate.
+func RatePostHandleFunc(w http.ResponseWriter, r *http.Request) {
+	jsonConfig, err := JSONFromRequestBody(r)
+	if err != nil {
+		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
+		return
+	} else if err = UpdateRates(jsonConfig); err != nil {
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	}
