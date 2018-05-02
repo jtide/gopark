@@ -1,10 +1,10 @@
 package api
 
 import (
-	"net/http"
-	"strings"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
+	"strings"
 )
 
 // WebFormatter implementors can produce either XML or JSON representations themselves.
