@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -80,4 +82,21 @@ func TimeRangeFromConfigString(s string) (uint64, uint64, error) {
 	}
 
 	return start, end, nil
+}
+
+func JSONFromRequestBody(r *http.Request) ([]byte, error) {
+	// Require JSON Content-Type
+	contentType := r.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "json") {
+		return nil, fmt.Errorf("invalid content type \"%v\" in request, \"Content-Type:application/json\" is required", contentType)
+	}
+
+	// Convert JSON body of request into []byte for unmarshalling
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }

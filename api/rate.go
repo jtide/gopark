@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"sort"
 	"strings"
@@ -348,23 +347,6 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	}
-}
-
-func JSONFromRequestBody(r *http.Request) ([]byte, error) {
-	// Require JSON Content-Type
-	contentType := r.Header.Get("Content-Type")
-	if !strings.Contains(contentType, "json") {
-		return nil, fmt.Errorf("invalid content type \"%v\" in request, \"Content-Type:application/json\" is required", contentType)
-	}
-
-	// Convert JSON body of request into []byte for unmarshalling
-	body, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
 }
 
 // RatePutHandleFunc overwrites all existing rates with rates specified in the Put body. The put request
