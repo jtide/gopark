@@ -1,23 +1,20 @@
 # GoPark
 A demo REST API built with Golang for querying parking rates based on time-of-day.
 
-This go package provides a simple REST API that can be used to query parking rates based on time-of-day.
-
 # Installation
 
-Use these instructions to install the `gopark` package in the [workspace](https://golang.org/doc/code.html#Organization) pointed to
-by the GOPATH environment variable.
+Use these instructions to install the `gopark` package into the go [workspace](https://golang.org/doc/code.html#Organization).
 
 Prerequisites:
  - If not already installed, download Go from [here](https://golang.org/dl/)
  - Use terminal with GOPATH environment variable set
 
-
-The installation directory will be:
+Install by performing:
 
     % go get github.com/jtide/gopark
 
-The `gopark` package should now be installed at `$GOPATH/src/github.com/jtide/gopark`.
+The `gopark` package should now be installed at `$GOPATH/src/github.com/jtide/gopark` with the executable in
+`$GOPATH/bin/gopark`.
 
 # Usage
 
