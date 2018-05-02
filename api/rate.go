@@ -314,7 +314,6 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		RatePutHandleFunc(w, r)
 	default:
-		w.WriteHeader(http.StatusBadRequest)
 		err := fmt.Errorf("%v method is not supported at this endpoint", r.Method)
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 	}
@@ -330,7 +329,6 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	// Calculate duration from start to end
 	duration, err := DurationFromHTTPRequest(r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	}
@@ -338,7 +336,6 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	// Lookup the Rate
 	price, err := currentWeeklyRates.LookupByDuration(duration)
 	if err != nil {
-		w.WriteHeader(http.StatusOK)
 		unknownRate := UnknownRate{Status: http.StatusNotFound, Start: duration.Start, End: duration.End, Price: "unavailable"}
 		WriteResponse(unknownRate, &w)
 		return
@@ -346,10 +343,8 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 	// Return rate in Rate format
 	rate := Rate{Status: http.StatusOK, Start: duration.Start, End: duration.End, Price: price}
-	w.WriteHeader(http.StatusOK)
 	err = WriteResponse(rate, &w)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	}
@@ -377,15 +372,12 @@ func JSONFromRequestBody(r *http.Request) ([]byte, error) {
 func RatePutHandleFunc(w http.ResponseWriter, r *http.Request) {
 	jsonConfig, err := JSONFromRequestBody(r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	} else if err = ReplaceRates(jsonConfig); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
 		WriteResponse(APIStandardResponse{http.StatusBadRequest, err.Error()}, &w)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	WriteResponse(APIStandardResponse{http.StatusOK, "replaced rates"}, &w)
 }

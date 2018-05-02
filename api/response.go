@@ -58,6 +58,8 @@ func respondWithXML(f WebFormatter, w *http.ResponseWriter) error {
 // WriteResponse is responsible for writing the response payload in either XML or JSON format, based on
 // the response Content-Type HTTP header. If not otherwise specified, JSON is used by default.
 func WriteResponse(f WebFormatter, w *http.ResponseWriter) error {
+	(*w).WriteHeader(int(f.StatusCode()))
+
 	encoding := (*w).Header().Get("Content-Type")
 	switch {
 	case strings.Contains(encoding, "json"):
