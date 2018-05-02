@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type CrazyRate struct {
+type Rate struct {
 	Status uint      `json:"status"`
 	Start  time.Time `json:"start"`
 	End    time.Time `json:"end"`
@@ -19,17 +19,17 @@ type CrazyRate struct {
 }
 
 // JSON implementation for WebFormatter interface.
-func (r CrazyRate) JSON() ([]byte, error) {
+func (r Rate) JSON() ([]byte, error) {
 	return json.Marshal(r)
 }
 
 // XML implementation for WebFormatter interface.
-func (r CrazyRate) XML() ([]byte, error) {
+func (r Rate) XML() ([]byte, error) {
 	return xml.Marshal(r)
 }
 
 // StatusCode implementation for WebFormatter interface.
-func (r CrazyRate) StatusCode() uint {
+func (r Rate) StatusCode() uint {
 	return r.Status
 }
 
@@ -335,7 +335,7 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Lookup the CrazyRate
+	// Lookup the Rate
 	price, err := currentWeeklyRates.LookupByDuration(duration)
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
@@ -344,8 +344,8 @@ func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return rate in CrazyRate format
-	rate := CrazyRate{Status: http.StatusOK, Start: duration.Start, End: duration.End, Price: price}
+	// Return rate in Rate format
+	rate := Rate{Status: http.StatusOK, Start: duration.Start, End: duration.End, Price: price}
 	w.WriteHeader(http.StatusOK)
 	err = WriteResponse(rate, &w)
 	if err != nil {
