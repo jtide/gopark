@@ -379,5 +379,5 @@ func RatePostHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	WriteResponse(APIStandardResponse{http.StatusOK, "replaced rates"}, &w)
+	WriteResponse(APIStandardResponse{http.StatusOK, "updated rates"}, &w)
 }
