@@ -92,7 +92,6 @@ func (src *WeeklyRates) DeepCopy() WeeklyRates {
 	rates := NewWeeklyRates()
 	for i, srcDailyRates := range *src {
 		for j, srcRate := range srcDailyRates {
-			fmt.Printf("i:%v, j:%v, dr:%v, r:%v\n", i, j, srcDailyRates, srcRate)
 			rates[i][j] = srcRate
 		}
 	}
@@ -192,8 +191,7 @@ func (rates *WeeklyRates) Update(jsonNewRates []byte) error {
 	config := ConfigRates{}
 	err := json.Unmarshal(jsonNewRates, &config)
 	if err != nil {
-		fmt.Printf("could not parse JSON to update rates : %v", err.Error())
-		return err
+		return fmt.Errorf("could not parse JSON to update rates : %v", err.Error())
 	}
 
 	// Update weekly rates with each new rate.

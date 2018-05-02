@@ -24,6 +24,21 @@ func (d Duration) XML() ([]byte, error) {
 	return xml.Marshal(d)
 }
 
+// Print a representation of Duration to stdout
+func (d Duration) Print() {
+	// For initial debug purposes...
+	fmt.Printf("------------------------------------------------\n")
+	fmt.Printf("Day start     : %d\n", d.Start.Day())
+	fmt.Printf("Day end       : %d\n", d.End.Day())
+	fmt.Printf("Weekday start : %s\n", d.Start.Weekday())
+	fmt.Printf("Weekday end   : %s\n", d.End.Weekday())
+	fmt.Printf("Mongth start  : %s\n", d.Start.Month())
+	fmt.Printf("Mongth end    : %s\n", d.Start.Month())
+	fmt.Printf("Time start    : %s\n", d.Start)
+	fmt.Printf("Time end      : %s\n", d.End)
+	fmt.Printf("Duration      : %s\n", d.Value)
+}
+
 func ParseDuration(startParam string, endParam string) (Duration, error) {
 	var duration Duration
 
@@ -46,18 +61,6 @@ func ParseDuration(startParam string, endParam string) (Duration, error) {
 	duration.Value = endTime.Sub(startTime)
 	duration.Start = startTime
 	duration.End = endTime
-
-	// For initial debug purposes...
-	fmt.Printf("------------------------------------------------\n")
-	fmt.Printf("Day start     : %d\n", duration.Start.Day())
-	fmt.Printf("Day end       : %d\n", duration.End.Day())
-	fmt.Printf("Weekday start : %s\n", duration.Start.Weekday())
-	fmt.Printf("Weekday end   : %s\n", duration.End.Weekday())
-	fmt.Printf("Mongth start  : %s\n", duration.Start.Month())
-	fmt.Printf("Mongth end    : %s\n", duration.Start.Month())
-	fmt.Printf("Time start    : %s\n", duration.Start)
-	fmt.Printf("Time end      : %s\n", duration.End)
-	fmt.Printf("Duration      : %s\n", duration.Value)
 
 	return duration, nil
 }

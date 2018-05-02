@@ -35,7 +35,7 @@ To run unit tests, install the following package, if not already installed.
 Then run unit tests by:
 
     % cd $GOPATH/github.com/jtide/gopark/api
-    % go test
+    % go test -v
 
 ## API Testing with Curl
 

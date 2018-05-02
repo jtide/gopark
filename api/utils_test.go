@@ -1,7 +1,6 @@
 package api_test
 
 import (
-	"fmt"
 	"github.com/jtide/gopark/api"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -14,6 +13,4 @@ func TestMinutesSinceMidnightFromTime(t *testing.T) {
 
 	startMinutes := api.MinutesSinceMidnightFromTime(startTime)
 	assert.Equal(t, uint64(60), startMinutes)
-
-	fmt.Printf("startTime %v: startMinutes: %v", startTime, startMinutes)
 }
