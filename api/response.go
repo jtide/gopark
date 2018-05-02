@@ -3,12 +3,30 @@ package api
 import (
 	"net/http"
 	"strings"
+	"encoding/json"
+	"encoding/xml"
 )
 
 // WebFormatter implementors can produce either XML or JSON representations themselves.
 type WebFormatter interface {
 	JSON() ([]byte, error)
 	XML() ([]byte, error)
+}
+
+// APIStandardResponse provides a vehicle for generic success/error responses
+type APIStandardResponse struct {
+	Status      uint   `json:"status"`
+	Description string `json:"desc"`
+}
+
+// JSON implementation for WebFormatter interface.
+func (e APIStandardResponse) JSON() ([]byte, error) {
+	return json.Marshal(e)
+}
+
+// XML implementation for WebFormatter interface.
+func (e APIStandardResponse) XML() ([]byte, error) {
+	return xml.Marshal(e)
 }
 
 func respondWithJSON(f WebFormatter, w *http.ResponseWriter) error {
