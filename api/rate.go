@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sort"
 	"strings"
@@ -297,7 +298,9 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		RateHandleGetFunc(w, r)
+		RateGetHandleFunc(w, r)
+	case http.MethodPut:
+		RatePutHandleFunc(w, r)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		err := fmt.Errorf("%v method is not supported at this endpoint", r.Method)
@@ -305,13 +308,13 @@ func RateHandleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RateHandleGetFunc provides an endpoint to that echos back both a start and end timestamp
+// RateGetHandleFunc provides an endpoint to that echos back both a start and end timestamp
 // in RFC3339 format along with the price for the duration, if available.  Returns a response
 // with "unavailable" if a rate does not exist for the requested time range.
 //
 // Example:
 // 		curl  "http://localhost:8080/api/duration?start=2015-07-01T07%3A00%3A00Z&end=2015-07-01T12%3A00%3A00Z"
-func RateHandleGetFunc(w http.ResponseWriter, r *http.Request) {
+func RateGetHandleFunc(w http.ResponseWriter, r *http.Request) {
 	// Calculate duration from start to end
 	duration, err := DurationFromHTTPRequest(r)
 	if err != nil {
@@ -338,4 +341,40 @@ func RateHandleGetFunc(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(Error{err.Error()}, &w)
 		return
 	}
+}
+
+func JSONFromRequestBody(r *http.Request) ([]byte, error) {
+	// Require JSON Content-Type
+	contentType := r.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "json") {
+		return nil, fmt.Errorf("invalid content type \"%v\" in request, \"Content-Type:application/json\" is required", contentType)
+	}
+
+	// Convert JSON body of request into []byte for unmarshalling
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+// RatePutHandleFunc overwrites all existing rates with rates specified in the Put body. The put request
+// must be in JSON format, and have the "Content-Type:application/json" header set.
+func RatePutHandleFunc(w http.ResponseWriter, r *http.Request) {
+	jsonConfig, err := JSONFromRequestBody(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		WriteResponse(Error{err.Error()}, &w)
+		return
+	} else if err = ReplaceRates(jsonConfig); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		WriteResponse(Error{err.Error()}, &w)
+		return
+	}
+
+	response := Error{"just kidding... no error here!!"} // FIXME: Create New type
+	w.WriteHeader(http.StatusOK)
+	WriteResponse(response, &w)
 }
