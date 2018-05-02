@@ -28,6 +28,11 @@ func (r CrazyRate) XML() ([]byte, error) {
 	return xml.Marshal(r)
 }
 
+// StatusCode implementation for WebFormatter interface.
+func (r CrazyRate) StatusCode() uint {
+	return r.Status
+}
+
 type UnknownRate struct {
 	Status uint      `json:"status"`
 	Start  time.Time `json:"start"`
@@ -43,6 +48,11 @@ func (r UnknownRate) JSON() ([]byte, error) {
 // XML implementation for WebFormatter interface.
 func (r UnknownRate) XML() ([]byte, error) {
 	return xml.Marshal(r)
+}
+
+// StatusCode implementation for WebFormatter interface.
+func (r UnknownRate) StatusCode() uint {
+	return r.Status
 }
 
 // currentWeeklyRates is (the only) global variable containing rate information for given times

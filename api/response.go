@@ -11,6 +11,7 @@ import (
 type WebFormatter interface {
 	JSON() ([]byte, error)
 	XML() ([]byte, error)
+	StatusCode() uint
 }
 
 // APIStandardResponse provides a vehicle for generic success/error responses
@@ -27,6 +28,11 @@ func (e APIStandardResponse) JSON() ([]byte, error) {
 // XML implementation for WebFormatter interface.
 func (e APIStandardResponse) XML() ([]byte, error) {
 	return xml.Marshal(e)
+}
+
+// StatusCode implementation for WebFormatter interface.
+func (e APIStandardResponse) StatusCode() uint {
+	return e.Status
 }
 
 func respondWithJSON(f WebFormatter, w *http.ResponseWriter) error {
